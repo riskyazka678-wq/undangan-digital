@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>UndanganKu - Undangan Digital Interaktif</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <div id="fxLayer" class="fx-layer"></div>
+
+  <nav class="top-bar">
+    <div class="brand"><i data-lucide="sparkles"></i><span>UndanganKu</span></div>
+    <div class="mode-switch">
+      <button id="btnModeEdit" class="active" onclick="switchMode('edit')">Buat</button>
+      <button id="btnModePreview" onclick="switchMode('preview')">Undangan</button>
+      <button id="btnModeInbox" onclick="switchMode('inbox')">Pesan <span id="inboxBadge" class="badge-count">0</span></button>
+    </div>
+  </nav>
+
+  <main id="editorSection" class="container">
+    <div class="card form-card">
+      <h2>Buat Surat Undangan Digital</h2>
+      <div class="marquee-box">
+        <div class="marquee-track">
+          <span>✨ Rangkai Momen Bahagia • Kirim Doa & Amplop Digital Sekali Klik • Konfirmasi Hadir atau Tidak Hadir Langsung ke Pemilik Acara ✨</span>
+          <span>✨ Rangkai Momen Bahagia • Kirim Doa & Amplop Digital Sekali Klik • Konfirmasi Hadir atau Tidak Hadir Langsung ke Pemilik Acara ✨</span>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Jenis Acara & Sound Tema</label>
+        <select id="eventType">
+          <option value="wedding">💍 Pernikahan (Backsound Romantis)</option>
+          <option value="birthday">🎂 Ulang Tahun (Backsound Ceria)</option>
+          <option value="khitan">🕌 Khitanan / Syukuran (Backsound Damai)</option>
+          <option value="party">🎉 Acara Umum / Gathering (Backsound Upbeat)</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Nama Tamu Undangan</label><input type="text" id="guestName" value="Budi Santoso" /></div>
+      <div class="form-group"><label>Judul / Nama Acara</label><input type="text" id="eventTitle" value="Raka & Dinda" /></div>
+      <div class="form-row">
+        <div class="form-group"><label>Tanggal Acara</label><input type="date" id="eventDate" /></div>
+        <div class="form-group"><label>Jam Acara</label><input type="time" id="eventTime" value="10:00" /></div>
+      </div>
+      <div class="form-group"><label>Isi Surat Undangan</label><textarea id="eventMessage" rows="3">Tanpa mengurangi rasa hormat, kami mengundang Bapak/Ibu/Saudara/i untuk hadir dan memberikan doa restu pada acara kami.</textarea></div>
+      <div class="form-group"><label>Alamat / Tempat Acara</label><input type="text" id="eventLocation" value="Gedung Serbaguna Grand Bekasi" /></div>
+      <div class="form-group"><label>Link Google Maps (Serlok)</label><input type="url" id="eventMapsUrl" value="https://maps.google.com/?q=Bekasi" /></div>
+
+      <hr class="divider" />
+      <h3><i data-lucide="gift"></i> Amplop Digital, QR & Hadiah</h3>
+      <div class="form-row">
+        <div class="form-group"><label>Bank / E-Wallet</label><input type="text" id="bankName" value="DANA / BCA" /></div>
+        <div class="form-group"><label>No. Rekening / HP</label><input type="text" id="bankNumber" value="081234567890" /></div>
+      </div>
+      <div class="form-group"><label>Atas Nama Penerima</label><input type="text" id="bankHolder" value="Raka Pratama" /></div>
+      <div class="form-group"><label>Isi Data Barcode QR (Opsional)</label><input type="text" id="qrCustomText" placeholder="Kosongkan untuk otomatis dari data amplop & tamu" /></div>
+      <div class="form-group"><label>Alamat Kirim Hadiah / Kado</label><input type="text" id="giftAddress" value="Jl. Melati Indah Blok B2 No. 10, Bekasi" /></div>
+
+      <hr class="divider" />
+      <h3><i data-lucide="image"></i> Galeri Foto & Musik Custom</h3>
+      <div class="form-group"><label>Upload Foto Galeri (Maks 4 foto)</label><input type="file" id="photoInput" accept="image/*" multiple onchange="handlePhotoUpload(event)" /></div>
+      <div class="form-group"><label>Upload Musik MP3 Sendiri (Opsional)</label><input type="file" id="customAudioInput" accept="audio/*" onchange="handleCustomAudio(event)" /></div>
+
+      <button class="btn-primary full-width" onclick="saveAndPublishInvite()"><i data-lucide="send"></i> Simpan & Buat Link Undangan</button>
+    </div>
+  </main>
+  <section id="previewSection" class="hidden">
+    <div id="coverOverlay" class="cover-overlay">
+      <div class="cover-content">
+        <span class="badge-theme" id="coverBadge">THE WEDDING OF</span>
+        <h1 id="coverTitle" class="serif-title">Raka & Dinda</h1>
+        <div class="guest-box"><p>Kepada Yth. Bapak/Ibu/Saudara/i:</p><h3 id="coverGuest">Tamu Spesial</h3></div>
+        <button class="btn-open-invite" onclick="openInvitation()"><i data-lucide="mail-open"></i> Buka Undangan</button>
+      </div>
+    </div>
+
+    <div class="floating-controls">
+      <button id="btnAudioToggle" class="fab-btn" onclick="toggleAudio()"><i data-lucide="volume-2"></i></button>
+      <button class="fab-btn link-btn" onclick="copyInviteLink()" title="Salin Link Undangan"><i data-lucide="link"></i></button>
+      <button class="fab-btn share" onclick="shareWhatsApp()" title="Kirim via WhatsApp"><i data-lucide="share-2"></i></button>
+    </div>
+
+    <div class="invite-wrapper">
+      <header class="invite-hero">
+        <span class="sub-tag" id="dispEventTag">UNDANGAN PERNIKAHAN</span>
+        <h1 class="serif-title" id="dispTitle">Raka & Dinda</h1>
+        <p class="date-banner" id="dispDateText"></p>
+        <div class="countdown-grid">
+          <div class="cd-box"><span id="cdDays">00</span><small>Hari</small></div>
+          <div class="cd-box"><span id="cdHours">00</span><small>Jam</small></div>
+          <div class="cd-box"><span id="cdMins">00</span><small>Menit</small></div>
+          <div class="cd-box"><span id="cdSecs">00</span><small>Detik</small></div>
+        </div>
+      </header>
+
+      <div class="invite-card"><p class="greeting-text" id="dispMessage"></p></div>
+
+      <div class="feature-grid">
+        <div class="feat-item" onclick="scrollToEl('secGaleri')"><div class="feat-icon pink"><i data-lucide="image"></i></div><div><h4>Galeri Foto</h4><p>Kenangan terbaik</p></div></div>
+        <div class="feat-item" onclick="scrollToEl('secLokasi')"><div class="feat-icon green"><i data-lucide="map-pin"></i></div><div><h4>Lokasi Acara</h4><p>Serlok Maps</p></div></div>
+        <div class="feat-item" onclick="scrollToEl('secRsvp')"><div class="feat-icon purple"><i data-lucide="message-square-heart"></i></div><div><h4>Kirim Pesan</h4><p>Hadir / Tidak Hadir</p></div></div>
+        <div class="feat-item highlight-gold" onclick="scrollToEl('secAmplop')"><div class="feat-icon gold"><i data-lucide="gift"></i></div><div><h4>Amplop Digital</h4><p>Hadiah & QR</p></div></div>
+      </div>
+
+      <div id="secLokasi" class="invite-card">
+        <h3 class="section-heading"><i data-lucide="map-pin"></i> Waktu & Lokasi</h3>
+        <p class="info-line"><strong>Jam:</strong> <span id="dispTime">10:00</span> WIB - Selesai</p>
+        <p class="info-line"><strong>Tempat:</strong> <span id="dispLocation"></span></p>
+        <a id="btnSerlok" href="#" target="_blank" class="btn-serlok" onclick="playSfx('click')"><i data-lucide="navigation"></i> Buka Google Maps (Serlok)</a>
+      </div>
+
+      <div id="secGaleri" class="invite-card">
+        <h3 class="section-heading"><i data-lucide="camera"></i> Galeri Foto</h3>
+        <div id="galleryContainer" class="gallery-grid">
+          <img src="https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=500&q=80" onclick="openLightbox(this.src)">
+          <img src="https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=500&q=80" onclick="openLightbox(this.src)">
+        </div>
+      </div>
+
+      <div id="secAmplop" class="invite-card amplop-section">
+        <h3 class="section-heading"><i data-lucide="gift"></i> Amplop Digital</h3>
+        <div class="digital-card">
+          <div class="card-top"><i data-lucide="gift"></i><span id="dispBankName">DANA / BCA</span></div>
+          <div class="card-number" id="dispBankNumber">081234567890</div>
+          <div class="card-holder">a.n <span id="dispBankHolder">Raka Pratama</span></div>
+        </div>
+        <button class="btn-gold full-width" onclick="copyRekening()"><i data-lucide="copy"></i> Salin Nomor Rekening / E-Wallet</button>
+        <button class="btn-outline full-width" onclick="toggleQrModal()"><i data-lucide="qr-code"></i> Tampilkan Barcode QR</button>
+        <div id="qrBoxContainer" class="qr-box hidden"><p class="qr-label">Scan Barcode QR</p><div id="qrcodeCanvas"></div></div>
+        <div class="physical-gift-box"><strong>Alamat Kirim Hadiah:</strong><p id="dispGiftAddress"></p></div>
+      </div>
+
+      <div id="secRsvp" class="invite-card">
+        <h3 class="section-heading"><i data-lucide="message-circle"></i> Konfirmasi & Kirim Pesan</h3>
+        <input type="text" id="rsvpName" placeholder="Nama Anda" class="mb-2" />
+        <select id="rsvpStatus" class="mb-2">
+          <option value="Hadir">✅ Saya Akan Hadir</option>
+          <option value="Tidak Hadir">❌ Maaf, Tidak Bisa Hadir</option>
+          <option value="Ragu">🤔 Masih Ragu</option>
+        </select>
+        <textarea id="rsvpWish" rows="2" placeholder="Tulis pesan / alasan untuk yang punya acara..." class="mb-2"></textarea>
+        <button class="btn-primary full-width" onclick="submitRsvp()"><i data-lucide="send"></i> Kirim Pesan ke Pemilik Acara</button>
+        <div id="wishesList" class="wishes-list"></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="inboxSection" class="container hidden">
+    <div class="card">
+      <div class="inbox-header">
+        <div><h2>Pesan Masuk Tamu</h2><p class="subtitle">Pesan kehadiran & alasan tamu tersimpan di server</p></div>
+        <button class="btn-outline" style="padding:8px 12px;" onclick="refreshInbox()"><i data-lucide="refresh-cw"></i></button>
+      </div>
+      <div class="stat-bar">
+        <div class="stat-pill hadir">Hadir: <strong id="countHadir">0</strong></div>
+        <div class="stat-pill tidak">Tidak Hadir: <strong id="countTidak">0</strong></div>
+      </div>
+      <div class="filter-row">
+        <button class="filter-btn active" data-filter="ALL" onclick="setInboxFilter('ALL', this)">Semua</button>
+        <button class="filter-btn" data-filter="Hadir" onclick="setInboxFilter('Hadir', this)">Hadir</button>
+        <button class="filter-btn" data-filter="Tidak Hadir" onclick="setInboxFilter('Tidak Hadir', this)">Tidak Hadir</button>
+      </div>
+      <div id="waChatContainer" class="wa-chat-box"><p class="empty-chat">Belum ada pesan masuk dari tamu.</p></div>
+    </div>
+  </section>
+
+  <div id="lightbox" class="lightbox hidden" onclick="this.classList.add('hidden')"><img id="lightboxImg" src="" /></div>
+  <div id="toast" class="toast">Notifikasi</div>
+
+  <script src="js/audio.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
